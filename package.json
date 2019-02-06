@@ -1,0 +1,29 @@
+{
+  "name": "@loke/http-client",
+  "version": "0.0.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@types/got": "^9.4.0",
+    "@types/url-template": "^2.0.28",
+    "got": "^9.6.0",
+    "prom-client": "^11.2.1",
+    "url-template": "^2.0.8"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.21",
+    "prettier": "^1.16.4",
+    "tslint": "^5.12.1",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.3.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "npm run build",
+    "build": "rm -rf ./dist && tsc",
+    "lint": "tslint -p ."
+  },
+  "author": "",
+  "license": "ISC"
+}
