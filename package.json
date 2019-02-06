@@ -4,6 +4,9 @@
   "description": "",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@types/got": "^9.4.0",
     "@types/url-template": "^2.0.28",
