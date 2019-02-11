@@ -36,7 +36,13 @@ function memoize<K, V>(fn: (key: K) => V): (key: K) => V {
   };
 }
 
-const parseUrlTemplate = memoize((pathTemplate: string) =>
+interface Expander {
+  expand(parameters: any): string;
+}
+
+type Parse = (pathTemplate: string) => Expander;
+
+export const parseUrlTemplate: Parse = memoize((pathTemplate: string) =>
   urlTemplate.parse(pathTemplate)
 );
 
@@ -141,8 +147,12 @@ export class HTTPClient {
 
       if (result.timings) {
         for (const [stage, value] of Object.entries(result.timings.phases)) {
-          if (stage === "total") { continue; }
-          if (typeof value !== "number") { continue; }
+          if (stage === "total") {
+            continue;
+          }
+          if (typeof value !== "number") {
+            continue;
+          }
 
           requestStageDuration.observe(
             { stage, base: this.baseUrl },
