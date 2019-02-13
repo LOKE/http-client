@@ -3,23 +3,23 @@ import { Counter, Histogram } from "prom-client";
 import { resolve as resolveUrl } from "url";
 import urlTemplate from "url-template";
 
-const requestsCount = new Counter(
-  "http_client_requests_total",
-  "Total number of http client requests",
-  ["base", "method", "path", "code"]
-);
+const requestsCount = new Counter({
+  name: "http_client_requests_total",
+  help: "Total number of http client requests",
+  labelNames: ["base", "method", "path", "code"]
+});
 
-const requestDuration = new Histogram(
-  "http_client_request_duration_seconds",
-  "Latencies for http client requests",
-  ["base", "method", "path"]
-);
+const requestDuration = new Histogram({
+  name: "http_client_request_duration_seconds",
+  help: "Latencies for http client requests",
+  labelNames: ["base", "method", "path"]
+});
 
-const requestStageDuration = new Histogram(
-  "http_client_request_stage_duration_seconds",
-  "Latencies for http client requests",
-  ["base", "stage"]
-);
+const requestStageDuration = new Histogram({
+  name: "http_client_request_stage_duration_seconds",
+  help: "Latencies for http client requests",
+  labelNames: ["base", "stage"]
+});
 
 function memoize<K, V>(fn: (key: K) => V): (key: K) => V {
   const cache = new Map<K, V>();
