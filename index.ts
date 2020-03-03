@@ -1,24 +1,27 @@
 import got from "got";
-import { Counter, Histogram } from "prom-client";
+import { Counter, Histogram, Registry } from "prom-client";
 import { resolve as resolveUrl } from "url";
 import urlTemplate from "url-template";
 
 const requestsCount = new Counter({
   name: "http_client_requests_total",
   help: "Total number of http client requests",
-  labelNames: ["base", "method", "path", "code"]
+  labelNames: ["base", "method", "path", "code"],
+  registers: []
 });
 
 const requestDuration = new Histogram({
   name: "http_client_request_duration_seconds",
   help: "Latencies for http client requests",
-  labelNames: ["base", "method", "path"]
+  labelNames: ["base", "method", "path"],
+  registers: []
 });
 
 const requestStageDuration = new Histogram({
   name: "http_client_request_stage_duration_seconds",
   help: "Latencies for http client requests",
-  labelNames: ["base", "stage"]
+  labelNames: ["base", "stage"],
+  registers: []
 });
 
 function memoize<K, V>(fn: (key: K) => V): (key: K) => V {
@@ -210,4 +213,10 @@ export class HTTPClient {
   _handlerError(err: Error) {
     throw err;
   }
+}
+
+export function registerMetrics(registry: Registry) {
+  registry.registerMetric(requestsCount);
+  registry.registerMetric(requestDuration);
+  registry.registerMetric(requestStageDuration);
 }
