@@ -1,6 +1,6 @@
 {
   "name": "@loke/http-client",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -27,6 +27,6 @@
     "build": "rm -rf ./dist && tsc",
     "lint": "tslint -p ."
   },
-  "author": "",
-  "license": "ISC"
+  "author": "LOKE Engineering",
+  "license": "MIT"
 }
