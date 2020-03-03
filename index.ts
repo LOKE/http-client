@@ -24,6 +24,12 @@ const requestStageDuration = new Histogram({
   registers: []
 });
 
+export function registerMetrics(registry: Registry) {
+  registry.registerMetric(requestsCount);
+  registry.registerMetric(requestDuration);
+  registry.registerMetric(requestStageDuration);
+}
+
 function memoize<K, V>(fn: (key: K) => V): (key: K) => V {
   const cache = new Map<K, V>();
 
@@ -213,10 +219,4 @@ export class HTTPClient {
   _handlerError(err: Error) {
     throw err;
   }
-}
-
-export function registerMetrics(registry: Registry) {
-  registry.registerMetric(requestsCount);
-  registry.registerMetric(requestDuration);
-  registry.registerMetric(requestStageDuration);
 }
