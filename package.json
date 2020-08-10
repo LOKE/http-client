@@ -8,7 +8,7 @@
     "dist"
   ],
   "dependencies": {
-    "@types/got": "^9.4.0",
+    "@types/got": "^9.6.11",
     "@types/url-template": "^2.0.28",
     "got": "^9.6.0",
     "prom-client": "^11.2.1",
