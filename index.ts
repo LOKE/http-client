@@ -89,7 +89,10 @@ interface Result {
   statusCode?: number;
 }
 
-type RequestOptions = got.GotOptions<string | null>;
+type RequestOptions =
+  | got.GotJSONOptions
+  | got.GotFormOptions<string | null>
+  | got.GotBodyOptions<string | null>;
 
 type Method =
   | "GET"
