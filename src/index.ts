@@ -33,7 +33,7 @@ interface Timings {
 interface Result {
   timings?: Timings;
   statusCode?: number;
-  body?: any;
+  body?: unknown;
 }
 
 type Method = 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE' | 'CONNECT';
@@ -52,7 +52,7 @@ export class HTTPClient {
     method: Method,
     pathTemplate: string,
     params = {},
-    body?: any,
+    body?: unknown,
     options?: RequestInit
   ): Promise<Result> {
     const path = parseUrlTemplate(pathTemplate);
@@ -82,7 +82,7 @@ export class HTTPClient {
         },
       };
 
-      this._recordMetrics(result, method, pathTemplate, startTime);
+      this._recordMetrics(result, method, pathTemplate);
 
       return this._handlerResponse(result);
     } catch (error) {
@@ -96,13 +96,13 @@ export class HTTPClient {
         },
       };
 
-      this._recordMetrics(result, method, pathTemplate, startTime);
+      this._recordMetrics(result, method, pathTemplate);
 
       return this._handlerError(error as Error);
     }
   }
 
-  _recordMetrics(result: Result, method: string, pathTemplate: string, startTime: number) {
+  _recordMetrics(result: Result, method: string, pathTemplate: string) {
     const stopTimer = requestDuration.startTimer();
     stopTimer({ method, path: pathTemplate, base: this.baseUrl });
 

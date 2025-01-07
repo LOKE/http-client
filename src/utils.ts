@@ -1,6 +1,6 @@
 import urlTemplate from "url-template";
 
-export function memoize<K, V>(fn: (key: K) => V): (key: K) => V {
+export function memoize<K, V>(fn: (_key: K) => V): (_key: K) => V {
 	const cache = new Map<K, V>();
 
 	return (key: K) => {
@@ -16,11 +16,11 @@ export function memoize<K, V>(fn: (key: K) => V): (key: K) => V {
 }
 
 interface Expander {
-	expand(parameters: any): string;
+	expand(_parameters: unknown): string;
 }
 
-type Parse = (pathTemplate: string) => Expander;
+type Parse = (_pathTemplate: string) => Expander;
 
-export const parseUrlTemplate: Parse = memoize((pathTemplate: string) =>
-	urlTemplate.parse(pathTemplate),
+export const parseUrlTemplate: Parse = memoize((pathTemplate: string) => 
+	urlTemplate.parseTemplate(pathTemplate),
 );
