@@ -1,7 +1,7 @@
 {
   "name": "@loke/http-client",
   "version": "2.0.0",
-  "description": "",
+  "description": "A simple yet powerful HTTP client for making requests, measuring performance, and recording metrics for observability. The implementation includes support for custom headers, URL templating, and Prometheus metrics.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
