@@ -62,7 +62,7 @@ export class HTTPClient {
 
     const defaultOptions: RequestInit = {
       method: method.toUpperCase(),
-      headers: { ...this.headers, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...this.headers  },
       body: body ? JSON.stringify(body) : undefined,
     };
 
@@ -126,11 +126,11 @@ export class HTTPClient {
     });
   }
 
-  _handlerResponse(res: Result): Result {
+  protected _handlerResponse(res: Result): Result {
     return res;
   }
 
-  _handlerError(err: Error): never {
+  protected _handlerError(err: Error): never {
     throw err;
   }
 }

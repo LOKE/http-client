@@ -16,10 +16,12 @@ export function memoize<K, V>(fn: (_key: K) => V): (_key: K) => V {
 }
 
 interface Expander {
-	expand(_parameters: unknown): string;
+	// eslint-disable-next-line no-unused-vars -- This is actually used
+	expand(parameters: unknown): string;
 }
 
-type Parse = (_pathTemplate: string) => Expander;
+// eslint-disable-next-line no-unused-vars -- This is actually used
+type Parse = (pathTemplate: string) => Expander;
 
 export const parseUrlTemplate: Parse = memoize((pathTemplate: string) => 
 	urlTemplate.parseTemplate(pathTemplate),
