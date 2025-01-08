@@ -82,7 +82,7 @@ export class HTTPClient {
         },
       };
 
-      this._recordMetrics(result, method, pathTemplate);
+      this.recordMetrics(result, method, pathTemplate);
 
       return this._handlerResponse(result);
     } catch (error) {
@@ -96,13 +96,13 @@ export class HTTPClient {
         },
       };
 
-      this._recordMetrics(result, method, pathTemplate);
+      this.recordMetrics(result, method, pathTemplate);
 
       return this._handlerError(error as Error);
     }
   }
 
-  _recordMetrics(result: Result, method: string, pathTemplate: string) {
+  private recordMetrics(result: Result, method: string, pathTemplate: string) {
     const stopTimer = requestDuration.startTimer();
     stopTimer({ method, path: pathTemplate, base: this.baseUrl });
 
