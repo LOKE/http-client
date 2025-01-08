@@ -18,8 +18,6 @@
     "@typescript-eslint/eslint-plugin": "^8.12.2",
     "@typescript-eslint/parser": "^8.12.2",
     "eslint": "^9.13.0",
-    "eslint-plugin-react": "^7.37.2",
-    "eslint-plugin-react-hooks": "^5.0.0",
     "prettier": "^2.8.8",
     "typescript": "^5.7.2"
   },
@@ -27,7 +25,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "npm run build",
     "build": "rm -rf ./dist && tsc",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
   },
   "author": "LOKE Engineering",
   "license": "MIT"

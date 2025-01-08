@@ -1,17 +1,11 @@
 import eslint from "@eslint/js";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tseslintParser from "@typescript-eslint/parser";
-import reactPlugin from "eslint-plugin-react";
-import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 export default [
   eslint.configs.recommended,
   {
-    ignores: [
-      "**/node_modules/**",
-      "**/dist/**",
-      "**/storybook-static/**",
-    ],
+    ignores: ["**/node_modules/**", "**/dist/**"],
   },
   {
     files: ["**/*.{js,mjs,cjs,ts,tsx}"],
@@ -27,8 +21,6 @@ export default [
     },
     plugins: {
       "@typescript-eslint": tseslint,
-      react: reactPlugin,
-      "react-hooks": reactHooksPlugin,
     },
     settings: {
       react: {
@@ -45,52 +37,6 @@ export default [
       "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/no-import-type-side-effects": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
-
-      // General rules
-      "no-console": "warn",
-      "no-debugger": "error",
-      "no-alert": "error",
-      eqeqeq: ["error", "always"],
-      "prefer-const": "error",
-      "no-var": "error",
-      "object-shorthand": "error",
-      "prefer-template": "error",
-      "prefer-destructuring": [
-        "error",
-        { object: true, array: false },
-      ],
-      "no-else-return": "error",
-      "no-unused-expressions": "error",
-      "no-unneeded-ternary": "error",
-      "no-duplicate-imports": "error",
-      "no-undef": "error",
-      "no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
-      ],
-      "no-useless-constructor": "error",
-      "no-useless-rename": "error",
-      "no-param-reassign": "error",
-      "no-shadow-restricted-names": "error",
-      "no-throw-literal": "error",
-      "no-useless-catch": "error",
-      "no-useless-escape": "error",
-      "no-with": "error",
-      "prefer-arrow-callback": "error",
-      "prefer-rest-params": "error",
-      "prefer-spread": "error",
-      yoda: "error",
-    },
-  },
-  {
-    files: ["**/*.ts", "**/*.tsx"],
-    languageOptions: {
-      parserOptions: {
-        project: "./tsconfig.json",
-      },
-    },
-    rules: {
-      // TypeScript-specific rules
       "@typescript-eslint/adjacent-overload-signatures": "error",
       "@typescript-eslint/array-type": [
         "error",
@@ -113,14 +59,40 @@ export default [
 
       // Disable 'no-undef' for TypeScript files
       "no-undef": "off",
-    },
-  },
-  {
-    files: ["**/*.stories.tsx"],
-    rules: {
-      "react-hooks/rules-of-hooks": "off",
-      "no-alert": "off",
-      "no-console": "off",
+
+      // General rules
+      "no-console": "warn",
+      "no-debugger": "error",
+      "no-alert": "error",
+      eqeqeq: ["error", "always"],
+      "prefer-const": "error",
+      "no-var": "error",
+      "object-shorthand": "error",
+      "prefer-template": "error",
+      "prefer-destructuring": [
+        "error",
+        { object: true, array: false },
+      ],
+      "no-else-return": "error",
+      "no-unused-expressions": "error",
+      "no-unneeded-ternary": "error",
+      "no-duplicate-imports": "error",
+      "no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+      "no-useless-constructor": "error",
+      "no-useless-rename": "error",
+      "no-param-reassign": "error",
+      "no-shadow-restricted-names": "error",
+      "no-throw-literal": "error",
+      "no-useless-catch": "error",
+      "no-useless-escape": "error",
+      "no-with": "error",
+      "prefer-arrow-callback": "error",
+      "prefer-rest-params": "error",
+      "prefer-spread": "error",
+      yoda: "error",
     },
   },
 ];
