@@ -38,10 +38,7 @@ export default [
       "@typescript-eslint/no-import-type-side-effects": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/adjacent-overload-signatures": "error",
-      "@typescript-eslint/array-type": [
-        "error",
-        { default: "array-simple" },
-      ],
+      "@typescript-eslint/array-type": ["error", { default: "array-simple" }],
       "@typescript-eslint/no-restricted-types": "error",
       "@typescript-eslint/explicit-member-accessibility": [
         "error",
@@ -69,10 +66,7 @@ export default [
       "no-var": "error",
       "object-shorthand": "error",
       "prefer-template": "error",
-      "prefer-destructuring": [
-        "error",
-        { object: true, array: false },
-      ],
+      "prefer-destructuring": ["error", { object: true, array: false }],
       "no-else-return": "error",
       "no-unused-expressions": "error",
       "no-unneeded-ternary": "error",

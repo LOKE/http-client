@@ -33,12 +33,12 @@ npm install
 Create an instance of `HTTPClient` with a base URL and default headers:
 
 ```typescript
-import { HTTPClient } from './index';
+import { HTTPClient } from "./index";
 
 const client = new HTTPClient({
-  baseUrl: 'https://api.example.com',
+  baseUrl: "https://api.example.com",
   headers: {
-    Authorization: 'Bearer YOUR_API_KEY',
+    Authorization: "Bearer YOUR_API_KEY",
   },
 });
 ```
@@ -50,10 +50,10 @@ Use the `request` method to send HTTP requests. Supported methods include `GET`,
 ```typescript
 (async () => {
   try {
-    const result = await client.request('GET', '/users/{id}', { id: 123 });
+    const result = await client.request("GET", "/users/{id}", { id: 123 });
     console.log(result);
   } catch (error) {
-    console.error('Request failed:', error);
+    console.error("Request failed:", error);
   }
 })();
 ```
@@ -63,8 +63,8 @@ Use the `request` method to send HTTP requests. Supported methods include `GET`,
 The `metrics.ts` file provides Prometheus-compatible metrics tracking for HTTP requests. To register the metrics with your Prometheus client, use the `registerMetrics` function.
 
 ```typescript
-import { registerMetrics } from './metrics';
-import { Registry } from 'prom-client';
+import { registerMetrics } from "./metrics";
+import { Registry } from "prom-client";
 
 const registry = new Registry();
 registerMetrics(registry);
@@ -73,8 +73,12 @@ registerMetrics(registry);
 Expose these metrics in your application for monitoring:
 
 ```typescript
-app.get('/metrics', async (req, res) => {
-  res.set('Content-Type', registry.contentType);
+app.get("/metrics", async (req, res) => {
+  res.set("Content-Type", registry.contentType);
   res.send(await registry.metrics());
 });
 ```
+
+## Upgrading from v1 to v2
+
+The changelog with instructions on upgrading can be found [here](https://github.com/LOKE/http-client/releases/edit/untagged-99fea20d7e84b6423f23)

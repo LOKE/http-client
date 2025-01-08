@@ -1,5 +1,9 @@
-import { requestsCount, requestDuration, requestStageDuration } from './metrics';
-import { parseUrlTemplate } from './utils';
+import {
+  requestsCount,
+  requestDuration,
+  requestStageDuration,
+} from "./metrics";
+import { parseUrlTemplate } from "./utils";
 
 interface Headers {
   [header: string]: number | string | string[] | undefined;
@@ -36,7 +40,16 @@ interface Result {
   body?: unknown;
 }
 
-type Method = 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE' | 'CONNECT';
+type Method =
+  | "GET"
+  | "PUT"
+  | "POST"
+  | "PATCH"
+  | "DELETE"
+  | "HEAD"
+  | "OPTIONS"
+  | "TRACE"
+  | "CONNECT";
 
 export class HTTPClient {
   baseUrl: string;
@@ -62,7 +75,7 @@ export class HTTPClient {
 
     const defaultOptions: RequestInit = {
       method: method.toUpperCase(),
-      headers: { 'Content-Type': 'application/json', ...this.headers  },
+      headers: { "Content-Type": "application/json", ...this.headers },
       body: body ? JSON.stringify(body) : undefined,
     };
 
@@ -122,7 +135,7 @@ export class HTTPClient {
       method,
       path: pathTemplate,
       code: result.statusCode || -1,
-      base: this.baseUrl
+      base: this.baseUrl,
     });
   }
 
@@ -134,4 +147,3 @@ export class HTTPClient {
     throw err;
   }
 }
-
