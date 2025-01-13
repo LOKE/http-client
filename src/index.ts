@@ -47,9 +47,7 @@ type Method =
   | "PATCH"
   | "DELETE"
   | "HEAD"
-  | "OPTIONS"
-  | "TRACE"
-  | "CONNECT";
+  | "OPTIONS";
 
 export class HTTPClient {
   baseUrl: string;
@@ -87,7 +85,6 @@ export class HTTPClient {
     try {
       const response = await fetch(url.toString(), fetchOptions);
       const endTime = performance.now();
-
       if (!response.ok) {
         const errorBody = await response.text();
         throw new Error(
@@ -95,11 +92,12 @@ export class HTTPClient {
         );
       }
 
-      const responseBody = response.headers
-        .get("content-type")
-        ?.includes("application/json")
-        ? await response.json()
-        : await response.text();
+      const responseBody =
+        response.headers
+          .get("content-type")
+          ?.includes("application/json") && response.body
+          ? await response.json()
+          : await response.text();
 
       const result: Result = {
         statusCode: response.status,
