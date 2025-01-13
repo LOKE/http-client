@@ -1,57 +1,104 @@
 import type { IncomingHttpHeaders } from "node:http";
 
-declare class StdError extends Error {
-  code?: string | undefined;
-  host?: string | undefined;
-  hostname?: string | undefined;
-  method?: string | undefined;
-  path?: string | undefined;
-  protocol?: string | undefined;
-  url?: string | undefined;
+export type TimeoutEvent =
+  | "request"
+  | "response"
+  | "read"
+  | "socket"
+  | "lookup"
+  | "connect";
+
+export class StdError extends Error {
+  code?: string;
+  host?: string;
+  hostname?: string;
+  method?: string;
+  path?: string;
+  protocol?: string;
+  url?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- This is a generic error
   response?: any;
 }
 
-declare class RequestError extends StdError {
-  name: "RequestError";
+export class RequestError extends StdError {
+  name: "RequestError" = "RequestError";
 }
 
-declare class ReadError extends StdError {
-  name: "ReadError";
+export class ReadError extends StdError {
+  name: "ReadError" = "ReadError";
 }
 
-declare class ParseError extends StdError {
-  name: "ParseError";
+export class ParseError extends StdError {
+  name: "ParseError" = "ParseError";
   statusCode: number;
   statusMessage: string;
+
+  constructor(
+    message: string,
+    statusCode: number,
+    statusMessage: string
+  ) {
+    super(message);
+    this.statusCode = statusCode;
+    this.statusMessage = statusMessage;
+  }
 }
 
-declare class HTTPError extends StdError {
-  name: "HTTPError";
+export class HTTPError extends StdError {
+  name: "HTTPError" = "HTTPError";
   statusCode: number;
   statusMessage: string;
   headers: IncomingHttpHeaders;
   body: Buffer | string | object;
+
+  constructor(
+    message: string,
+    response: Response,
+    body: Buffer | string | object
+  ) {
+    super(message);
+    this.statusCode = response.status;
+    this.statusMessage = response.statusText;
+    this.headers = response.headers as unknown as IncomingHttpHeaders;
+    this.body = body;
+  }
 }
 
-declare class MaxRedirectsError extends StdError {
-  name: "MaxRedirectsError";
+export class MaxRedirectsError extends StdError {
+  name: "MaxRedirectsError" = "MaxRedirectsError";
   statusCode: number;
   statusMessage: string;
   redirectUrls: string[];
+
+  constructor(
+    message: string,
+    statusCode: number,
+    statusMessage: string,
+    redirectUrls: string[]
+  ) {
+    super(message);
+    this.statusCode = statusCode;
+    this.statusMessage = statusMessage;
+    this.redirectUrls = redirectUrls;
+  }
 }
 
-declare class UnsupportedProtocolError extends StdError {
-  name: "UnsupportedProtocolError";
+export class UnsupportedProtocolError extends StdError {
+  name: "UnsupportedProtocolError" = "UnsupportedProtocolError";
 }
 
-declare class CancelError extends StdError {
-  name: "CancelError";
+export class CancelError extends StdError {
+  name: "CancelError" = "CancelError";
 }
 
-declare class TimeoutError extends StdError {
-  name: "TimeoutError";
+export class TimeoutError extends StdError {
+  name: "TimeoutError" = "TimeoutError";
   event: TimeoutEvent;
+
+  constructor(message: string, event: TimeoutEvent) {
+    super(message);
+    this.event = event;
+  }
 }
 
 export type LokeError =

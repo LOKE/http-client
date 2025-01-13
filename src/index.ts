@@ -1,10 +1,18 @@
 import {
-  requestsCount,
+  HTTPError,
+  MaxRedirectsError,
+  ParseError,
+  RequestError,
+  TimeoutError,
+  type TimeoutEvent,
+} from "./errors";
+import {
   requestDuration,
+  requestsCount,
   requestStageDuration,
 } from "./metrics";
-export { registerMetrics } from "./metrics";
 import { parseUrlTemplate } from "./utils";
+export { registerMetrics } from "./metrics";
 
 interface Headers {
   [header: string]: number | string | string[] | undefined;
@@ -13,6 +21,8 @@ interface Headers {
 interface Options {
   baseUrl: string;
   headers: Headers;
+  timeout?: number;
+  maxRedirects?: number;
 }
 
 interface Timings {
@@ -53,11 +63,20 @@ type Method =
 export class HTTPClient {
   baseUrl: string;
   headers: Headers;
+  timeout: number;
+  maxRedirects: number;
 
   constructor(opts: Options) {
-    const { baseUrl, headers } = opts;
+    const {
+      baseUrl,
+      headers,
+      timeout = 10000,
+      maxRedirects = 5,
+    } = opts;
     this.baseUrl = baseUrl;
     this.headers = headers;
+    this.timeout = timeout;
+    this.maxRedirects = maxRedirects;
   }
 
   async request(
@@ -79,26 +98,61 @@ export class HTTPClient {
         ...this.headers,
       },
       body: body ? JSON.stringify(body) : undefined,
+      redirect: "manual",
     };
 
     const fetchOptions = { ...defaultOptions, ...options };
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, this.timeout);
+
+      fetchOptions.signal = controller.signal;
+
       const response = await fetch(url.toString(), fetchOptions);
+      clearTimeout(timeoutId);
+
       const endTime = performance.now();
-      if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(
-          errorBody || response.statusText || "Request failed"
+
+      if (response.status >= 300 && response.status < 400) {
+        const redirectUrl = response.headers.get("Location");
+        if (!redirectUrl) {
+          throw new HTTPError(
+            "Redirect with no Location header",
+            response,
+            ""
+          );
+        }
+        if (this.maxRedirects <= 0) {
+          throw new MaxRedirectsError(
+            "Maximum redirects exceeded",
+            response.status,
+            response.statusText,
+            [redirectUrl]
+          );
+        }
+        this.maxRedirects--;
+        return this.request(
+          method,
+          redirectUrl,
+          params,
+          body,
+          options
         );
       }
 
-      const responseBody =
-        response.headers
-          .get("content-type")
-          ?.includes("application/json") && response.body
-          ? await response.json()
-          : await response.text();
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new HTTPError(
+          errorBody || response.statusText || "Request failed",
+          response,
+          errorBody
+        );
+      }
+
+      const responseBody = await this.parseResponseBody(response);
 
       const result: Result = {
         statusCode: response.status,
@@ -126,7 +180,30 @@ export class HTTPClient {
 
       this.recordMetrics(result, method, pathTemplate);
 
-      return this._handlerError(error as Error);
+      return this._handlerError(
+        error as Error,
+        method,
+        url.toString()
+      );
+    }
+  }
+
+  private async parseResponseBody(
+    response: Response
+  ): Promise<unknown> {
+    const contentType = response.headers.get("content-type");
+    if (contentType?.includes("application/json") && response.body) {
+      try {
+        return await response.json();
+      } catch {
+        throw new ParseError(
+          "Failed to parse JSON response",
+          response.status,
+          response.statusText
+        );
+      }
+    } else {
+      return await response.text();
     }
   }
 
@@ -164,7 +241,39 @@ export class HTTPClient {
     return res;
   }
 
-  protected _handlerError(err: Error): never {
-    throw err;
+  protected _handlerError(
+    err: Error,
+    method: string,
+    url: string
+  ): never {
+    if (err.name === "AbortError") {
+      throw new TimeoutError(
+        `Request timed out after ${this.timeout}ms`,
+        "request" as TimeoutEvent
+      );
+    }
+
+    if (
+      err instanceof HTTPError ||
+      err instanceof MaxRedirectsError ||
+      err instanceof ParseError
+    ) {
+      throw err;
+    }
+
+    if (
+      err instanceof TypeError &&
+      err.message.includes("Failed to fetch")
+    ) {
+      const requestError = new RequestError(err.message);
+      requestError.method = method;
+      requestError.url = url;
+      throw requestError;
+    }
+
+    const unknownError = new RequestError(err.message);
+    unknownError.method = method;
+    unknownError.url = url;
+    throw unknownError;
   }
 }
