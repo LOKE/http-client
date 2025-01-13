@@ -75,7 +75,10 @@ export class HTTPClient {
 
     const defaultOptions: RequestInit = {
       method: method.toUpperCase(),
-      headers: { "Content-Type": "application/json", ...this.headers },
+      headers: {
+        "Content-Type": "application/json",
+        ...this.headers,
+      },
       body: body ? JSON.stringify(body) : undefined,
     };
 
@@ -85,9 +88,22 @@ export class HTTPClient {
       const response = await fetch(url.toString(), fetchOptions);
       const endTime = performance.now();
 
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(
+          errorBody || response.statusText || "Request failed"
+        );
+      }
+
+      const responseBody = response.headers
+        .get("content-type")
+        ?.includes("application/json")
+        ? await response.json()
+        : await response.text();
+
       const result: Result = {
         statusCode: response.status,
-        body: await response.json(),
+        body: responseBody,
         timings: {
           phases: {
             total: endTime - startTime,
@@ -115,12 +131,18 @@ export class HTTPClient {
     }
   }
 
-  private recordMetrics(result: Result, method: string, pathTemplate: string) {
+  private recordMetrics(
+    result: Result,
+    method: string,
+    pathTemplate: string
+  ) {
     const stopTimer = requestDuration.startTimer();
     stopTimer({ method, path: pathTemplate, base: this.baseUrl });
 
     if (result.timings?.phases) {
-      for (const [stage, value] of Object.entries(result.timings.phases)) {
+      for (const [stage, value] of Object.entries(
+        result.timings.phases
+      )) {
         if (stage === "total") continue;
         if (typeof value !== "number") continue;
 
