@@ -3,6 +3,7 @@ import {
   requestDuration,
   requestStageDuration,
 } from "./metrics";
+export { registerMetrics } from "./metrics";
 import { parseUrlTemplate } from "./utils";
 
 interface Headers {

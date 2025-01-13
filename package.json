@@ -7,9 +7,6 @@
   "files": [
     "dist"
   ],
-  "dependencies": {
-    "url-template": "^3.1.1"
-  },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
     "@tsconfig/recommended": "^1.0.8",
