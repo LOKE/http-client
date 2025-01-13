@@ -103,7 +103,7 @@ export class HTTPClient {
 
       const result: Result = {
         statusCode: response.status,
-        body: responseBody,
+        body: responseBody === "" ? undefined : responseBody,
         timings: {
           phases: {
             total: endTime - startTime,
