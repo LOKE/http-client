@@ -9,6 +9,7 @@ import {
   RequestError,
   UnsupportedProtocolError,
 } from ".";
+import type { AddressInfo } from "node:net";
 
 const BASE_URL = "http://localhost";
 let server: Server;
@@ -119,13 +120,24 @@ app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });
 });
 
+let PORT: number;
+
 // Test lifecycle: Start and stop the server
 test.before(async () => {
-  server = app.listen(4000);
-  client = new HTTPClient({
-    baseUrl: `${BASE_URL}:4000`,
-    headers: { Authorization: "Bearer token" },
-  });
+  server = app.listen();
+
+  // Check if server.address() is of type AddressInfo
+  const address = server.address();
+  if (typeof address === "object" && address !== null) {
+    const { port } = address as AddressInfo;
+    PORT = port;
+    client = new HTTPClient({
+      baseUrl: `${BASE_URL}:${port}`,
+      headers: { Authorization: "Bearer token" },
+    });
+  } else {
+    throw new Error("Failed to retrieve server address");
+  }
 });
 
 test.after.always(async () => {
@@ -447,7 +459,7 @@ test("HTTPClient throws ParseError on invalid JSON response", async (t) => {
 
 test("HTTPClient throws MaxRedirectsError on excessive redirects", async (t) => {
   const loopingClient = new HTTPClient({
-    baseUrl: `${BASE_URL}:4000`,
+    baseUrl: `${BASE_URL}:${PORT}`,
     headers: { Authorization: "Bearer token" },
     maxRedirects: 2, // Low limit to trigger the error quickly
   });
