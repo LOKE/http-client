@@ -128,8 +128,14 @@ test.before(async () => {
   });
 });
 
-test.after(async () => {
-  server.close();
+test.after.always(async () => {
+  return new Promise<void>((resolve) => {
+    if (server) {
+      server.close(() => resolve());
+    } else {
+      resolve();
+    }
+  });
 });
 
 // GET Tests
