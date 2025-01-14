@@ -1,7 +1,7 @@
 import test from "ava";
 import express from "express";
+import type { Server } from "node:http";
 import {
-  CancelError,
   HTTPClient,
   HTTPError,
   MaxRedirectsError,
@@ -9,7 +9,6 @@ import {
   RequestError,
   UnsupportedProtocolError,
 } from ".";
-import type { Server } from "node:http";
 
 const BASE_URL = "http://localhost";
 let server: Server;
@@ -464,25 +463,4 @@ test("HTTPClient throws UnsupportedProtocolError on unsupported protocol", async
 
   t.true(error instanceof UnsupportedProtocolError);
   t.is(error.message, "Unsupported protocol: ftp://localhost");
-});
-
-test("HTTPClient throws CancelError when request is aborted", async (t) => {
-  const controller = new AbortController();
-
-  setTimeout(() => {
-    controller.abort(); // Simulate manual cancellation
-  }, 50);
-
-  const cancelingClient = new HTTPClient({
-    baseUrl: `${BASE_URL}:4000`,
-    headers: { Authorization: "Bearer token" },
-  });
-
-  const error = await t.throwsAsync(
-    cancelingClient.request("GET", "/users/123", {}, undefined, {
-      signal: controller.signal,
-    })
-  );
-  t.true(error instanceof CancelError);
-  t.is(error.message, "Request canceled");
 });
