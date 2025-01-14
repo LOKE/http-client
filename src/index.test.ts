@@ -37,6 +37,10 @@ app.get("/invalid-json", (req, res) => {
   res.set("Content-Type", "application/json").send("Invalid JSON");
 });
 
+app.get("/redirect-loop", (req, res) => {
+  res.redirect(301, "/redirect-loop"); // Infinite redirect loop
+});
+
 app.post("/users", (req, res) => {
   const { name, email } = req.body;
   if (name && email) {
@@ -437,10 +441,6 @@ test("HTTPClient throws ParseError on invalid JSON response", async (t) => {
 });
 
 test("HTTPClient throws MaxRedirectsError on excessive redirects", async (t) => {
-  app.get("/redirect-loop", (req, res) => {
-    res.redirect(301, "/redirect-loop"); // Infinite redirect loop
-  });
-
   const loopingClient = new HTTPClient({
     baseUrl: `${BASE_URL}:4000`,
     headers: { Authorization: "Bearer token" },
