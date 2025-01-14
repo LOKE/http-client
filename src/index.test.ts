@@ -33,6 +33,10 @@ app.get("/redirect", (req, res) => {
   res.redirect(301, "/users/123");
 });
 
+app.get("/invalid-json", (req, res) => {
+  res.set("Content-Type", "application/json").send("Invalid JSON");
+});
+
 app.post("/users", (req, res) => {
   const { name, email } = req.body;
   if (name && email) {
@@ -417,7 +421,7 @@ test("HTTPClient throws RequestError on network failure", async (t) => {
     faultyClient.request("GET", "/invalid/path")
   );
   t.true(error instanceof RequestError);
-  t.is(error.message, "Failed to fetch");
+  t.is(error.message, "fetch failed");
 });
 
 test("HTTPClient throws ParseError on invalid JSON response", async (t) => {
