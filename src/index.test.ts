@@ -1,6 +1,14 @@
 import test from "ava";
 import express from "express";
-import { HTTPClient } from ".";
+import {
+  CancelError,
+  HTTPClient,
+  HTTPError,
+  MaxRedirectsError,
+  ParseError,
+  RequestError,
+  UnsupportedProtocolError,
+} from ".";
 import type { Server } from "node:http";
 
 const BASE_URL = "http://localhost";
@@ -21,12 +29,16 @@ app.get("/users/:id", (req, res) => {
   }
 });
 
+app.get("/redirect", (req, res) => {
+  res.redirect(301, "/users/123");
+});
+
 app.post("/users", (req, res) => {
   const { name, email } = req.body;
   if (name && email) {
     res.status(201).json({ id: "124", name, email });
   } else {
-    res.status(400).json({ error: "Invalid data" });
+    res.status(400).json({ error: "Invalid Data" });
   }
 });
 
@@ -38,7 +50,7 @@ app.put("/users/:id", (req, res) => {
   if (id !== "123") {
     res.status(404).json({ error: "User not found" });
   } else if (!name) {
-    res.status(400).json({ error: "Invalid data" });
+    res.status(400).json({ error: "Invalid Data" });
   } else {
     res.status(200).json({ id, name });
   }
@@ -65,7 +77,7 @@ app.patch("/users/:id", (req, res) => {
   } else if (id !== "123") {
     res.status(404).json({ error: "User not found" });
   } else {
-    res.status(400).json({ error: "Invalid data" });
+    res.status(400).json({ error: "Invalid Data" });
   }
 });
 
@@ -126,7 +138,13 @@ test("HTTPClient handles 404 errors on GET", async (t) => {
   const error = await t.throwsAsync(
     client.request("GET", "/users/{id}", { id: "999" })
   );
-  t.is(error.message, '{"error":"User not found"}');
+  if (!(error instanceof HTTPError))
+    return t.fail("Error is not an instance of HTTPError");
+  t.is(error.statusCode, 404);
+  t.is(error.statusMessage, "Not Found");
+  t.deepEqual(JSON.parse(error.body as string), {
+    error: "User not found",
+  });
 });
 
 test("HTTPClient performs a GET request for metrics", async (t) => {
@@ -139,7 +157,19 @@ test("HTTPClient handles invalid URL on GET", async (t) => {
   const error = await t.throwsAsync(
     client.request("GET", "/invalid/path")
   );
-  t.is(error.message, '{"error":"Not Found"}');
+  if (!(error instanceof HTTPError))
+    return t.fail("Error is not an instance of HTTPError");
+  t.is(error.statusCode, 404);
+  t.is(error.statusMessage, "Not Found");
+  t.deepEqual(JSON.parse(error.body as string), {
+    error: "Not Found",
+  });
+});
+
+test("HTTPClient handles redirects correctly", async (t) => {
+  const result = await client.request("GET", "/redirect");
+  t.is(result.statusCode, 200);
+  t.deepEqual(result.body, { id: "123", name: "John Doe" });
 });
 
 // POST Tests
@@ -162,21 +192,39 @@ test("HTTPClient handles 400 errors on POST", async (t) => {
   const error = await t.throwsAsync(
     client.request("POST", "/users", {}, { name: "" })
   );
-  t.is(error.message, '{"error":"Invalid data"}');
+  if (!(error instanceof HTTPError))
+    return t.fail("Error is not an instance of HTTPError");
+  t.is(error.statusCode, 400);
+  t.is(error.statusMessage, "Bad Request");
+  t.deepEqual(JSON.parse(error.body as string), {
+    error: "Invalid Data",
+  });
 });
 
 test("HTTPClient handles missing body on POST", async (t) => {
   const error = await t.throwsAsync(
     client.request("POST", "/users", {})
   );
-  t.is(error.message, '{"error":"Invalid data"}');
+  if (!(error instanceof HTTPError))
+    return t.fail("Error is not an instance of HTTPError");
+  t.is(error.statusCode, 400);
+  t.is(error.statusMessage, "Bad Request");
+  t.deepEqual(JSON.parse(error.body as string), {
+    error: "Invalid Data",
+  });
 });
 
 test("HTTPClient handles POST request to invalid URL", async (t) => {
   const error = await t.throwsAsync(
     client.request("POST", "/invalid/path", {}, { name: "Test User" })
   );
-  t.is(error.message, '{"error":"Not Found"}');
+  if (!(error instanceof HTTPError))
+    return t.fail("Error is not an instance of HTTPError");
+  t.is(error.statusCode, 404);
+  t.is(error.statusMessage, "Not Found");
+  t.deepEqual(JSON.parse(error.body as string), {
+    error: "Not Found",
+  });
 });
 
 // PUT Tests
@@ -195,7 +243,13 @@ test("HTTPClient handles 400 errors on PUT", async (t) => {
   const error = await t.throwsAsync(
     client.request("PUT", "/users/{id}", { id: "123" }, {})
   );
-  t.is(error.message, '{"error":"Invalid data"}');
+  if (!(error instanceof HTTPError))
+    return t.fail("Error is not an instance of HTTPError");
+  t.is(error.statusCode, 400);
+  t.is(error.statusMessage, "Bad Request");
+  t.deepEqual(JSON.parse(error.body as string), {
+    error: "Invalid Data",
+  });
 });
 
 test("HTTPClient handles PUT request to a non-existent user", async (t) => {
@@ -207,7 +261,13 @@ test("HTTPClient handles PUT request to a non-existent user", async (t) => {
       { name: "Updated Name" }
     )
   );
-  t.is(error.message, '{"error":"User not found"}');
+  if (!(error instanceof HTTPError))
+    return t.fail("Error is not an instance of HTTPError");
+  t.is(error.statusCode, 404);
+  t.is(error.statusMessage, "Not Found");
+  t.deepEqual(JSON.parse(error.body as string), {
+    error: "User not found",
+  });
 });
 
 test("HTTPClient handles PUT request to invalid URL", async (t) => {
@@ -235,7 +295,13 @@ test("HTTPClient handles 404 errors on DELETE", async (t) => {
   const error = await t.throwsAsync(
     client.request("DELETE", "/users/{id}", { id: "999" })
   );
-  t.is(error.message, '{"error":"User not found"}');
+  if (!(error instanceof HTTPError))
+    return t.fail("Error is not an instance of HTTPError");
+  t.is(error.statusCode, 404);
+  t.is(error.statusMessage, "Not Found");
+  t.deepEqual(JSON.parse(error.body as string), {
+    error: "User not found",
+  });
 });
 
 // Metrics Test
@@ -269,7 +335,13 @@ test("HTTPClient handles 404 errors on PATCH", async (t) => {
       { email: "test@example.com" }
     )
   );
-  t.is(error.message, '{"error":"User not found"}');
+  if (!(error instanceof HTTPError))
+    return t.fail("Error is not an instance of HTTPError");
+  t.is(error.statusCode, 404);
+  t.is(error.statusMessage, "Not Found");
+  t.deepEqual(JSON.parse(error.body as string), {
+    error: "User not found",
+  });
 });
 
 // HEAD Tests
@@ -285,7 +357,10 @@ test("HTTPClient handles 404 errors on HEAD", async (t) => {
   const error = await t.throwsAsync(
     client.request("HEAD", "/users/{id}", { id: "999" })
   );
-  t.is(error.message, "Not Found");
+  if (!(error instanceof HTTPError))
+    return t.fail("Error is not an instance of HTTPError");
+  t.is(error.statusCode, 404);
+  t.is(error.statusMessage, "Not Found");
 });
 
 // OPTIONS Tests
@@ -299,5 +374,111 @@ test("HTTPClient handles OPTIONS request for invalid URL", async (t) => {
   const error = await t.throwsAsync(
     client.request("OPTIONS", "/invalid/path")
   );
-  t.is(error.message, '{"error":"Not Found"}');
+  if (!(error instanceof HTTPError))
+    return t.fail("Error is not an instance of HTTPError");
+  t.is(error.statusCode, 404);
+  t.is(error.statusMessage, "Not Found");
+  t.deepEqual(JSON.parse(error.body as string), {
+    error: "Not Found",
+  });
+});
+
+// Specific Error Testing
+test("HTTPClient handles request timeout", async (t) => {
+  const slowApp = express();
+  slowApp.get("/slow", async (_, res) => {
+    await new Promise((resolve) => setTimeout(resolve, 15000)); // Simulate delay
+    res.status(200).send("Success");
+  });
+
+  const slowServer = slowApp.listen(4001);
+  const slowClient = new HTTPClient({
+    baseUrl: "http://localhost:4001",
+    headers: { Authorization: "Bearer token" },
+    timeout: 5000, // Short timeout for testing
+  });
+
+  const error = await t.throwsAsync(
+    slowClient.request("GET", "/slow")
+  );
+  t.is(error.name, "TimeoutError");
+  t.is(error.message, "Request timed out after 5000ms");
+
+  slowServer.close();
+});
+
+test("HTTPClient throws RequestError on network failure", async (t) => {
+  const faultyClient = new HTTPClient({
+    baseUrl: "http://invalid.url", // Invalid base URL
+    headers: { Authorization: "Bearer token" },
+  });
+
+  const error = await t.throwsAsync(
+    faultyClient.request("GET", "/invalid/path")
+  );
+  t.true(error instanceof RequestError);
+  t.is(error.message, "Failed to fetch");
+});
+
+test("HTTPClient throws ParseError on invalid JSON response", async (t) => {
+  app.get("/invalid-json", (req, res) => {
+    res.set("Content-Type", "application/json").send("Invalid JSON");
+  });
+
+  const error = await t.throwsAsync(
+    client.request("GET", "/invalid-json")
+  );
+  t.true(error instanceof ParseError);
+  t.is(error.message, "Failed to parse JSON response");
+});
+
+test("HTTPClient throws MaxRedirectsError on excessive redirects", async (t) => {
+  app.get("/redirect-loop", (req, res) => {
+    res.redirect(301, "/redirect-loop"); // Infinite redirect loop
+  });
+
+  const loopingClient = new HTTPClient({
+    baseUrl: `${BASE_URL}:4000`,
+    headers: { Authorization: "Bearer token" },
+    maxRedirects: 2, // Low limit to trigger the error quickly
+  });
+
+  const error = await t.throwsAsync(
+    loopingClient.request("GET", "/redirect-loop")
+  );
+  t.true(error instanceof MaxRedirectsError);
+  t.is(error.message, "Maximum redirects exceeded");
+});
+
+test("HTTPClient throws UnsupportedProtocolError on unsupported protocol", async (t) => {
+  const error = t.throws(() => {
+    new HTTPClient({
+      baseUrl: "ftp://localhost", // Unsupported protocol
+      headers: { Authorization: "Bearer token" },
+    });
+  });
+
+  t.true(error instanceof UnsupportedProtocolError);
+  t.is(error.message, "Unsupported protocol: ftp://localhost");
+});
+
+test("HTTPClient throws CancelError when request is aborted", async (t) => {
+  const controller = new AbortController();
+
+  setTimeout(() => {
+    controller.abort(); // Simulate manual cancellation
+  }, 50);
+
+  const cancelingClient = new HTTPClient({
+    baseUrl: `${BASE_URL}:4000`,
+    headers: { Authorization: "Bearer token" },
+  });
+
+  const error = await t.throwsAsync(
+    cancelingClient.request("GET", "/users/123", {}, undefined, {
+      signal: controller.signal,
+    })
+  );
+  t.true(error instanceof CancelError);
+  t.is(error.message, "Request canceled");
 });

@@ -4,8 +4,10 @@ import {
   ParseError,
   RequestError,
   TimeoutError,
+  UnsupportedProtocolError,
   type TimeoutEvent,
 } from "./errors";
+export * from "./errors";
 import {
   requestDuration,
   requestsCount,
@@ -73,6 +75,16 @@ export class HTTPClient {
       timeout = 10000,
       maxRedirects = 5,
     } = opts;
+
+    // Validate protocol
+    const supportedProtocols = ["http:", "https:"];
+    const url = new URL(baseUrl);
+    if (!supportedProtocols.includes(url.protocol)) {
+      throw new UnsupportedProtocolError(
+        `Unsupported protocol: ${baseUrl}`
+      );
+    }
+
     this.baseUrl = baseUrl;
     this.headers = headers;
     this.timeout = timeout;
