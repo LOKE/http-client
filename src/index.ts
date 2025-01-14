@@ -13,7 +13,7 @@ import {
   requestsCount,
   requestStageDuration,
 } from "./metrics";
-import { parseUrlTemplate } from "./utils";
+import { parseUrlTemplate } from "./url-template";
 export { registerMetrics } from "./metrics";
 
 interface Headers {
