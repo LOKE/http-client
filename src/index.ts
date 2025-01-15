@@ -156,7 +156,14 @@ export class HTTPClient {
       }
 
       if (!response.ok) {
-        const errorBody = await response.text();
+        const errorBody = response.body
+          ? response.headers
+              .get("content-type")
+              ?.includes("application/json")
+            ? await response.json()
+            : await response.text()
+          : null;
+
         throw new HTTPError(
           errorBody || response.statusText || "Request failed",
           response,

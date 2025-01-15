@@ -167,7 +167,7 @@ test("HTTPClient handles 404 errors on GET", async (t) => {
     return t.fail("Error is not an instance of HTTPError");
   t.is(error.statusCode, 404);
   t.is(error.statusMessage, "Not Found");
-  t.deepEqual(JSON.parse(error.body as string), {
+  t.deepEqual(error.body, {
     error: "User not found",
   });
 });
@@ -186,7 +186,7 @@ test("HTTPClient handles invalid URL on GET", async (t) => {
     return t.fail("Error is not an instance of HTTPError");
   t.is(error.statusCode, 404);
   t.is(error.statusMessage, "Not Found");
-  t.deepEqual(JSON.parse(error.body as string), {
+  t.deepEqual(error.body, {
     error: "Not Found",
   });
 });
@@ -221,7 +221,7 @@ test("HTTPClient handles 400 errors on POST", async (t) => {
     return t.fail("Error is not an instance of HTTPError");
   t.is(error.statusCode, 400);
   t.is(error.statusMessage, "Bad Request");
-  t.deepEqual(JSON.parse(error.body as string), {
+  t.deepEqual(error.body, {
     error: "Invalid Data",
   });
 });
@@ -234,7 +234,7 @@ test("HTTPClient handles missing body on POST", async (t) => {
     return t.fail("Error is not an instance of HTTPError");
   t.is(error.statusCode, 400);
   t.is(error.statusMessage, "Bad Request");
-  t.deepEqual(JSON.parse(error.body as string), {
+  t.deepEqual(error.body, {
     error: "Invalid Data",
   });
 });
@@ -247,7 +247,7 @@ test("HTTPClient handles POST request to invalid URL", async (t) => {
     return t.fail("Error is not an instance of HTTPError");
   t.is(error.statusCode, 404);
   t.is(error.statusMessage, "Not Found");
-  t.deepEqual(JSON.parse(error.body as string), {
+  t.deepEqual(error.body, {
     error: "Not Found",
   });
 });
@@ -272,7 +272,7 @@ test("HTTPClient handles 400 errors on PUT", async (t) => {
     return t.fail("Error is not an instance of HTTPError");
   t.is(error.statusCode, 400);
   t.is(error.statusMessage, "Bad Request");
-  t.deepEqual(JSON.parse(error.body as string), {
+  t.deepEqual(error.body, {
     error: "Invalid Data",
   });
 });
@@ -290,7 +290,7 @@ test("HTTPClient handles PUT request to a non-existent user", async (t) => {
     return t.fail("Error is not an instance of HTTPError");
   t.is(error.statusCode, 404);
   t.is(error.statusMessage, "Not Found");
-  t.deepEqual(JSON.parse(error.body as string), {
+  t.deepEqual(error.body, {
     error: "User not found",
   });
 });
@@ -304,7 +304,9 @@ test("HTTPClient handles PUT request to invalid URL", async (t) => {
       { name: "Invalid Request" }
     )
   );
-  t.is(error.message, '{"error":"Not Found"}');
+  if (!(error instanceof HTTPError))
+    return t.fail("Error is not an instance of HTTPError");
+  t.deepEqual(error.body, { error: "Not Found" });
 });
 
 // DELETE Tests
@@ -324,7 +326,7 @@ test("HTTPClient handles 404 errors on DELETE", async (t) => {
     return t.fail("Error is not an instance of HTTPError");
   t.is(error.statusCode, 404);
   t.is(error.statusMessage, "Not Found");
-  t.deepEqual(JSON.parse(error.body as string), {
+  t.deepEqual(error.body, {
     error: "User not found",
   });
 });
@@ -364,7 +366,7 @@ test("HTTPClient handles 404 errors on PATCH", async (t) => {
     return t.fail("Error is not an instance of HTTPError");
   t.is(error.statusCode, 404);
   t.is(error.statusMessage, "Not Found");
-  t.deepEqual(JSON.parse(error.body as string), {
+  t.deepEqual(error.body, {
     error: "User not found",
   });
 });
@@ -403,7 +405,7 @@ test("HTTPClient handles OPTIONS request for invalid URL", async (t) => {
     return t.fail("Error is not an instance of HTTPError");
   t.is(error.statusCode, 404);
   t.is(error.statusMessage, "Not Found");
-  t.deepEqual(JSON.parse(error.body as string), {
+  t.deepEqual(error.body, {
     error: "Not Found",
   });
 });
