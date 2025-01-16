@@ -199,11 +199,34 @@ export class HTTPClient {
 
       this.recordMetrics(result, method, pathTemplate);
 
-      return this._handlerError(
-        error as Error,
-        method,
-        url.toString()
-      );
+      if (!(error instanceof Error)) {
+        return this._handlerError(error as Error);
+      }
+
+      if (
+        error instanceof HTTPError ||
+        error instanceof MaxRedirectsError ||
+        error instanceof ParseError
+      ) {
+        return this._handlerError(error);
+      }
+
+      let newError = error;
+      if (error.name === "AbortError") {
+        newError = new TimeoutError(
+          `Request timed out after ${this.timeout}ms`,
+          "request" as TimeoutEvent
+        );
+      }
+
+      if (error.message.includes("Failed to fetch")) {
+        const requestError = new RequestError(error.message);
+        requestError.method = method;
+        requestError.url = url.toString();
+        newError = requestError;
+      }
+
+      return this._handlerError(newError);
     }
   }
 
@@ -260,39 +283,7 @@ export class HTTPClient {
     return res;
   }
 
-  protected _handlerError(
-    err: Error,
-    method: string,
-    url: string
-  ): never {
-    if (err.name === "AbortError") {
-      throw new TimeoutError(
-        `Request timed out after ${this.timeout}ms`,
-        "request" as TimeoutEvent
-      );
-    }
-
-    if (
-      err instanceof HTTPError ||
-      err instanceof MaxRedirectsError ||
-      err instanceof ParseError
-    ) {
-      throw err;
-    }
-
-    if (
-      err instanceof TypeError &&
-      err.message.includes("Failed to fetch")
-    ) {
-      const requestError = new RequestError(err.message);
-      requestError.method = method;
-      requestError.url = url;
-      throw requestError;
-    }
-
-    const unknownError = new RequestError(err.message);
-    unknownError.method = method;
-    unknownError.url = url;
-    throw unknownError;
+  protected _handlerError(err: Error): never {
+    throw err;
   }
 }
