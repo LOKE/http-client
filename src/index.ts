@@ -137,15 +137,6 @@ export class HTTPClient {
             ""
           );
         }
-        if (this.maxRedirects <= 0) {
-          throw new MaxRedirectsError(
-            "Maximum redirects exceeded",
-            response.status,
-            response.statusText,
-            [redirectUrl]
-          );
-        }
-        this.maxRedirects--;
         return this.request(
           method,
           redirectUrl,
