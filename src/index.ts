@@ -96,7 +96,9 @@ export class HTTPClient {
     pathTemplate: string,
     params = {},
     body?: unknown,
-    options?: RequestInit
+    options?: RequestInit,
+    redirectCount = 0,
+    redirectUrls: string[] = []
   ): Promise<Result> {
     const path = parseUrlTemplate(pathTemplate);
     const url = new URL(path.expand(params), this.baseUrl);
@@ -110,7 +112,7 @@ export class HTTPClient {
         ...this.headers,
       },
       body: body ? JSON.stringify(body) : undefined,
-      redirect: "follow",
+      redirect: "manual",
     };
 
     const fetchOptions = { ...defaultOptions, ...options };
@@ -128,6 +130,7 @@ export class HTTPClient {
 
       const endTime = performance.now();
 
+      // Handle redirects manually
       if (response.status >= 300 && response.status < 400) {
         const redirectUrl = response.headers.get("Location");
         if (!redirectUrl) {
@@ -137,12 +140,24 @@ export class HTTPClient {
             ""
           );
         }
+
+        if (redirectCount >= this.maxRedirects) {
+          throw new MaxRedirectsError(
+            "Maximum redirects exceeded",
+            response.status,
+            response.statusText || "Redirect",
+            [...redirectUrls, redirectUrl]
+          );
+        }
+
         return this.request(
           method,
           redirectUrl,
           params,
           body,
-          options
+          options,
+          redirectCount + 1,
+          [...redirectUrls, redirectUrl]
         );
       }
 
@@ -203,8 +218,6 @@ export class HTTPClient {
       }
 
       let newError = error;
-
-      // Transform AbortError into TimeoutError
       if (error.name === "AbortError") {
         newError = new TimeoutError(
           `Request timed out after ${this.timeout}ms`,
@@ -212,12 +225,8 @@ export class HTTPClient {
         );
       }
 
-      // Transform network-related TypeError into RequestError
-      if (
-        error instanceof TypeError &&
-        error.message === "fetch failed"
-      ) {
-        const requestError = new RequestError("fetch failed");
+      if (error.message.includes("Failed to fetch")) {
+        const requestError = new RequestError(error.message);
         requestError.method = method;
         requestError.url = url.toString();
         newError = requestError;
