@@ -107,13 +107,8 @@ app.options("/users", (req, res) => {
 });
 
 // TRACE: Echo back the request details
-app.trace("/trace", (req, res) => {
-  res.status(200).json({ method: req.method, headers: req.headers });
-});
-
-// CONNECT: Simulate a tunneling endpoint
-app.connect("/tunnel", (req, res) => {
-  res.status(200).json({ message: "Tunnel established" });
+app.get("/redirect-no-location", (req, res) => {
+  res.status(301).send("Redirect without Location header");
 });
 
 app.use((req, res) => {
@@ -471,6 +466,17 @@ test("HTTPClient throws MaxRedirectsError on excessive redirects", async (t) => 
   );
   t.true(error instanceof MaxRedirectsError);
   t.is(error.message, "Maximum redirects exceeded");
+});
+
+test("HTTPClient handles 301 response without Location header", async (t) => {
+  const error = await t.throwsAsync(
+    client.request("GET", "/redirect-no-location")
+  );
+
+  t.true(error instanceof HTTPError);
+  if (!(error instanceof HTTPError)) return;
+  t.is(error.statusCode, 301);
+  t.is(error.message, "Redirect without Location header");
 });
 
 test("HTTPClient throws UnsupportedProtocolError on unsupported protocol", async (t) => {
