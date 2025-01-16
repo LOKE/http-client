@@ -96,9 +96,7 @@ export class HTTPClient {
     pathTemplate: string,
     params = {},
     body?: unknown,
-    options?: RequestInit,
-    redirectCount = 0,
-    redirectUrls: string[] = []
+    options?: RequestInit
   ): Promise<Result> {
     const path = parseUrlTemplate(pathTemplate);
     const url = new URL(path.expand(params), this.baseUrl);
@@ -112,7 +110,7 @@ export class HTTPClient {
         ...this.headers,
       },
       body: body ? JSON.stringify(body) : undefined,
-      redirect: "manual",
+      redirect: "follow", // Allow fetch to handle redirects
     };
 
     const fetchOptions = { ...defaultOptions, ...options };
@@ -129,37 +127,6 @@ export class HTTPClient {
       clearTimeout(timeoutId);
 
       const endTime = performance.now();
-
-      // Handle redirects manually
-      if (response.status >= 300 && response.status < 400) {
-        const redirectUrl = response.headers.get("Location");
-        if (!redirectUrl) {
-          throw new HTTPError(
-            "Redirect with no Location header",
-            response,
-            ""
-          );
-        }
-
-        if (redirectCount >= this.maxRedirects) {
-          throw new MaxRedirectsError(
-            "Maximum redirects exceeded",
-            response.status,
-            response.statusText || "Redirect",
-            [...redirectUrls, redirectUrl]
-          );
-        }
-
-        return this.request(
-          method,
-          redirectUrl,
-          params,
-          body,
-          options,
-          redirectCount + 1,
-          [...redirectUrls, redirectUrl]
-        );
-      }
 
       if (!response.ok) {
         const errorBody = response.body
@@ -209,30 +176,45 @@ export class HTTPClient {
         return this._handlerError(error as Error);
       }
 
-      if (
-        error instanceof HTTPError ||
-        error instanceof MaxRedirectsError ||
-        error instanceof ParseError
-      ) {
+      if (error instanceof HTTPError || error instanceof ParseError) {
         return this._handlerError(error);
       }
 
-      let newError = error;
+      // Transform AbortError into TimeoutError
       if (error.name === "AbortError") {
-        newError = new TimeoutError(
-          `Request timed out after ${this.timeout}ms`,
-          "request" as TimeoutEvent
+        return this._handlerError(
+          new TimeoutError(
+            `Request timed out after ${this.timeout}ms`,
+            "request" as TimeoutEvent
+          )
         );
       }
 
+      // Handle "maximum redirect reached" error
+      if (
+        error.cause
+          ?.toString()
+          .includes("Error: redirect count exceeded")
+      ) {
+        return this._handlerError(
+          new MaxRedirectsError(
+            "Maximum redirects exceeded",
+            0, // statusCode is unknown here
+            "Too Many Redirects",
+            [url.toString()] // Add the original URL for context
+          )
+        );
+      }
+
+      // Handle other network errors
       if (error.message.includes("Failed to fetch")) {
         const requestError = new RequestError(error.message);
         requestError.method = method;
         requestError.url = url.toString();
-        newError = requestError;
+        return this._handlerError(requestError);
       }
 
-      return this._handlerError(newError);
+      return this._handlerError(error);
     }
   }
 
