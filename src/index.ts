@@ -190,12 +190,9 @@ export class HTTPClient {
         );
       }
 
+      const errorCause = error.cause?.toString();
       // Handle "maximum redirect reached" error
-      if (
-        error.cause
-          ?.toString()
-          .includes("Error: redirect count exceeded")
-      ) {
+      if (errorCause?.includes("redirect count exceeded")) {
         return this._handlerError(
           new MaxRedirectsError(
             "Maximum redirects exceeded",
@@ -206,8 +203,10 @@ export class HTTPClient {
         );
       }
 
-      // Handle other network errors
-      if (error.message.includes("Failed to fetch")) {
+      if (
+        errorCause?.includes("ENOTFOUND") ||
+        errorCause?.includes("ECONNREFUSED")
+      ) {
         const requestError = new RequestError(error.message);
         requestError.method = method;
         requestError.url = url.toString();
