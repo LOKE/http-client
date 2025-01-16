@@ -203,6 +203,8 @@ export class HTTPClient {
       }
 
       let newError = error;
+
+      // Transform AbortError into TimeoutError
       if (error.name === "AbortError") {
         newError = new TimeoutError(
           `Request timed out after ${this.timeout}ms`,
@@ -210,8 +212,12 @@ export class HTTPClient {
         );
       }
 
-      if (error.message.includes("Failed to fetch")) {
-        const requestError = new RequestError(error.message);
+      // Transform network-related TypeError into RequestError
+      if (
+        error instanceof TypeError &&
+        error.message === "fetch failed"
+      ) {
+        const requestError = new RequestError("fetch failed");
         requestError.method = method;
         requestError.url = url.toString();
         newError = requestError;
