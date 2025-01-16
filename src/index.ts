@@ -110,7 +110,7 @@ export class HTTPClient {
         ...this.headers,
       },
       body: body ? JSON.stringify(body) : undefined,
-      redirect: "follow", // Allow fetch to handle redirects
+      redirect: "follow",
     };
 
     const fetchOptions = { ...defaultOptions, ...options };
