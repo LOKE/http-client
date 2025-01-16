@@ -49,7 +49,7 @@ export class HTTPError extends StdError {
   statusCode: number;
   statusMessage: string;
   headers: IncomingHttpHeaders;
-  body: Buffer | string | object;
+  body?: Buffer | string | object | null;
 
   constructor(
     message: string,
