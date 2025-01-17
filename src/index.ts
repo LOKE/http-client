@@ -1,7 +1,6 @@
 import {
   HTTPError,
   ParseError,
-  RequestError,
   TimeoutError,
   UnsupportedProtocolError,
 } from "./errors";
@@ -158,10 +157,6 @@ export class HTTPClient {
         return this._handlerError(new Error("Unknown error"));
       }
 
-      if (error instanceof HTTPError || error instanceof ParseError) {
-        return this._handlerError(error);
-      }
-
       if (
         error instanceof DOMException &&
         error.name === "TimeoutError"
@@ -174,18 +169,6 @@ export class HTTPClient {
         error.cause instanceof Error
       ) {
         return this._handlerError(error.cause);
-      }
-
-      const errorCause = error.cause?.toString();
-      // Handle "maximum redirect reached" error
-      if (
-        errorCause?.includes("ENOTFOUND") ||
-        errorCause?.includes("ECONNREFUSED")
-      ) {
-        const requestError = new RequestError(error.message);
-        requestError.method = method;
-        requestError.url = url.toString();
-        return this._handlerError(requestError);
       }
 
       return this._handlerError(error);

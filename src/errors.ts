@@ -12,10 +12,6 @@ export class StdError extends Error {
   response?: any;
 }
 
-export class RequestError extends StdError {
-  name: "RequestError" = "RequestError";
-}
-
 export class ReadError extends StdError {
   name: "ReadError" = "ReadError";
 }
@@ -69,7 +65,6 @@ export class TimeoutError extends StdError {
 }
 
 export type LokeError =
-  | RequestError
   | ReadError
   | ParseError
   | HTTPError
