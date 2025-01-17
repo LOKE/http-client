@@ -173,11 +173,18 @@ export class HTTPClient {
       this.recordMetrics(result, method, pathTemplate);
 
       if (!(error instanceof Error)) {
-        return this._handlerError(error as Error);
+        return this._handlerError(new Error("Unknown error"));
       }
 
       if (error instanceof HTTPError || error instanceof ParseError) {
         return this._handlerError(error);
+      }
+
+      if (
+        error instanceof TypeError &&
+        error.cause instanceof Error
+      ) {
+        return this._handlerError(error.cause);
       }
 
       // Transform AbortError into TimeoutError

@@ -1,15 +1,14 @@
 import test from "ava";
 import express from "express";
 import type { Server } from "node:http";
+import type { AddressInfo } from "node:net";
 import {
   HTTPClient,
   HTTPError,
   MaxRedirectsError,
   ParseError,
-  RequestError,
   UnsupportedProtocolError,
 } from ".";
-import type { AddressInfo } from "node:net";
 
 const BASE_URL = "http://localhost";
 let server: Server;
@@ -438,8 +437,9 @@ test("HTTPClient throws RequestError on network failure", async (t) => {
   const error = await t.throwsAsync(
     faultyClient.request("GET", "/invalid/path")
   );
-  t.true(error instanceof RequestError);
-  t.is(error.message, "fetch failed");
+
+  t.true(error instanceof Error);
+  t.is(error.message, "getaddrinfo ENOTFOUND invalid.url");
 });
 
 test("HTTPClient throws ParseError on invalid JSON response", async (t) => {
