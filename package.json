@@ -1,32 +1,43 @@
 {
   "name": "@loke/http-client",
-  "version": "1.0.5",
-  "description": "",
+  "version": "2.0.0-rc.1",
+  "description": "A simple yet powerful HTTP client for making requests, measuring performance, and recording metrics for observability. The implementation includes support for custom headers, URL templating, and Prometheus metrics.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
-  "dependencies": {
-    "@types/got": "^9.6.11",
-    "@types/url-template": "^2.0.28",
-    "got": "^9.6.0",
-    "prom-client": "^11.2.1",
-    "url-template": "^2.0.8"
-  },
   "devDependencies": {
-    "@types/node": "^10.12.21",
-    "prettier": "^1.16.4",
-    "tslint": "^6.0.0",
-    "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.3.1"
+    "@eslint/js": "^9.13.0",
+    "@tsconfig/recommended": "^1.0.8",
+    "@types/express": "^5.0.0",
+    "@types/got": "^9.6.12",
+    "@types/node": "^22.10.5",
+    "@typescript-eslint/eslint-plugin": "^8.12.2",
+    "@typescript-eslint/parser": "^8.12.2",
+    "ava": "^6.2.0",
+    "eslint": "^9.13.0",
+    "express": "^4.21.2",
+    "prettier": "^2.8.8",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "prom-client": ">=12.0.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "ava",
     "prepare": "npm run build",
     "build": "rm -rf ./dist && tsc",
-    "lint": "tslint -p ."
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
   },
   "author": "LOKE Engineering",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "got": "^14.4.5"
+  }
 }
