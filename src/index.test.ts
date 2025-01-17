@@ -407,7 +407,7 @@ test("HTTPClient handles OPTIONS request for invalid URL", async (t) => {
 test("HTTPClient handles request timeout", async (t) => {
   const slowApp = express();
   slowApp.get("/slow", async (_, res) => {
-    await new Promise((resolve) => setTimeout(resolve, 15000)); // Simulate delay
+    await new Promise((resolve) => setTimeout(resolve, 5000)); // Simulate delay
     res.status(200).send("Success");
   });
 
