@@ -1,19 +1,18 @@
 import {
   HTTPError,
-  MaxRedirectsError,
   ParseError,
   RequestError,
   TimeoutError,
   UnsupportedProtocolError,
   type TimeoutEvent,
 } from "./errors";
-export * from "./errors";
 import {
   requestDuration,
   requestsCount,
   requestStageDuration,
 } from "./metrics";
 import { parseUrlTemplate } from "./url-template";
+export * from "./errors";
 export { registerMetrics } from "./metrics";
 
 interface Headers {
@@ -199,17 +198,6 @@ export class HTTPClient {
 
       const errorCause = error.cause?.toString();
       // Handle "maximum redirect reached" error
-      if (errorCause?.includes("redirect count exceeded")) {
-        return this._handlerError(
-          new MaxRedirectsError(
-            "Maximum redirects exceeded",
-            0, // statusCode is unknown here
-            "Too Many Redirects",
-            [url.toString()] // Add the original URL for context
-          )
-        );
-      }
-
       if (
         errorCause?.includes("ENOTFOUND") ||
         errorCause?.includes("ECONNREFUSED")

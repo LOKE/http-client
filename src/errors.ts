@@ -64,25 +64,6 @@ export class HTTPError extends StdError {
   }
 }
 
-export class MaxRedirectsError extends StdError {
-  name: "MaxRedirectsError" = "MaxRedirectsError";
-  statusCode: number;
-  statusMessage: string;
-  redirectUrls: string[];
-
-  constructor(
-    message: string,
-    statusCode: number,
-    statusMessage: string,
-    redirectUrls: string[]
-  ) {
-    super(message);
-    this.statusCode = statusCode;
-    this.statusMessage = statusMessage;
-    this.redirectUrls = redirectUrls;
-  }
-}
-
 export class UnsupportedProtocolError extends StdError {
   name: "UnsupportedProtocolError" = "UnsupportedProtocolError";
 }
@@ -106,7 +87,6 @@ export type LokeError =
   | ReadError
   | ParseError
   | HTTPError
-  | MaxRedirectsError
   | UnsupportedProtocolError
   | CancelError
   | TimeoutError;

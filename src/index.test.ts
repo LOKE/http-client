@@ -5,7 +5,6 @@ import type { AddressInfo } from "node:net";
 import {
   HTTPClient,
   HTTPError,
-  MaxRedirectsError,
   ParseError,
   UnsupportedProtocolError,
 } from ".";
@@ -464,8 +463,8 @@ test("HTTPClient throws MaxRedirectsError on excessive redirects", async (t) => 
   const error = await t.throwsAsync(
     loopingClient.request("GET", "/redirect-loop")
   );
-  t.true(error instanceof MaxRedirectsError);
-  t.is(error.message, "Maximum redirects exceeded");
+  t.true(error instanceof Error);
+  t.is(error.message, "redirect count exceeded");
 });
 
 test("HTTPClient handles 301 response without Location header", async (t) => {
