@@ -415,14 +415,15 @@ test("HTTPClient handles request timeout", async (t) => {
   const slowClient = new HTTPClient({
     baseUrl: "http://localhost:4001",
     headers: { Authorization: "Bearer token" },
-    timeout: 5000, // Short timeout for testing
   });
 
   const error = await t.throwsAsync(
-    slowClient.request("GET", "/slow")
+    slowClient.request("GET", "/slow", {}, undefined, {
+      signal: AbortSignal.timeout(100),
+    })
   );
   t.is(error.name, "TimeoutError");
-  t.is(error.message, "Request timed out after 5000ms");
+  t.is(error.message, "The operation was aborted due to timeout");
 
   slowServer.close();
 });

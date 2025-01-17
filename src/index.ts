@@ -4,7 +4,6 @@ import {
   RequestError,
   TimeoutError,
   UnsupportedProtocolError,
-  type TimeoutEvent,
 } from "./errors";
 import {
   requestDuration,
@@ -22,7 +21,6 @@ interface Headers {
 interface Options {
   baseUrl: string;
   headers: Headers;
-  timeout?: number;
   maxRedirects?: number;
 }
 
@@ -64,16 +62,10 @@ type Method =
 export class HTTPClient {
   baseUrl: string;
   headers: Headers;
-  timeout: number;
   maxRedirects: number;
 
   constructor(opts: Options) {
-    const {
-      baseUrl,
-      headers,
-      timeout = 10000,
-      maxRedirects = 5,
-    } = opts;
+    const { baseUrl, headers, maxRedirects = 5 } = opts;
 
     // Validate protocol
     const supportedProtocols = ["http:", "https:"];
@@ -86,7 +78,6 @@ export class HTTPClient {
 
     this.baseUrl = baseUrl;
     this.headers = headers;
-    this.timeout = timeout;
     this.maxRedirects = maxRedirects;
   }
 
@@ -115,15 +106,7 @@ export class HTTPClient {
     const fetchOptions = { ...defaultOptions, ...options };
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        controller.abort();
-      }, this.timeout);
-
-      fetchOptions.signal = controller.signal;
-
       const response = await fetch(url.toString(), fetchOptions);
-      clearTimeout(timeoutId);
 
       const endTime = performance.now();
 
@@ -180,20 +163,17 @@ export class HTTPClient {
       }
 
       if (
+        error instanceof DOMException &&
+        error.name === "TimeoutError"
+      ) {
+        return this._handlerError(new TimeoutError(error.message));
+      }
+
+      if (
         error instanceof TypeError &&
         error.cause instanceof Error
       ) {
         return this._handlerError(error.cause);
-      }
-
-      // Transform AbortError into TimeoutError
-      if (error.name === "AbortError") {
-        return this._handlerError(
-          new TimeoutError(
-            `Request timed out after ${this.timeout}ms`,
-            "request" as TimeoutEvent
-          )
-        );
       }
 
       const errorCause = error.cause?.toString();

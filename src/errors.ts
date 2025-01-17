@@ -1,13 +1,5 @@
 import type { IncomingHttpHeaders } from "node:http";
 
-export type TimeoutEvent =
-  | "request"
-  | "response"
-  | "read"
-  | "socket"
-  | "lookup"
-  | "connect";
-
 export class StdError extends Error {
   code?: string;
   host?: string;
@@ -74,12 +66,6 @@ export class CancelError extends StdError {
 
 export class TimeoutError extends StdError {
   name: "TimeoutError" = "TimeoutError";
-  event: TimeoutEvent;
-
-  constructor(message: string, event: TimeoutEvent) {
-    super(message);
-    this.event = event;
-  }
 }
 
 export type LokeError =
@@ -88,5 +74,4 @@ export type LokeError =
   | ParseError
   | HTTPError
   | UnsupportedProtocolError
-  | CancelError
-  | TimeoutError;
+  | CancelError;
