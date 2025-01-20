@@ -47,6 +47,7 @@ interface Result {
   timings?: Timings;
   statusCode?: number;
   body?: unknown;
+  headers?: Headers;
 }
 
 type Method =
@@ -130,6 +131,7 @@ export class HTTPClient {
       const result: Result = {
         statusCode: response.status,
         body: responseBody === "" ? undefined : responseBody,
+        headers: Object.fromEntries(response.headers),
         timings: {
           phases: {
             total: endTime - startTime,
