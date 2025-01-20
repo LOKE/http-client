@@ -81,7 +81,7 @@ export class HTTPClient {
     this.maxRedirects = maxRedirects;
   }
 
-  async request<T>(
+  async request(
     method: Method,
     pathTemplate: string,
     params = {},
@@ -130,7 +130,7 @@ export class HTTPClient {
 
       const result: Result = {
         statusCode: response.status,
-        body: (responseBody === "" ? undefined : responseBody) as T,
+        body: responseBody === "" ? undefined : responseBody,
         headers: Object.fromEntries(response.headers),
         timings: {
           phases: {
