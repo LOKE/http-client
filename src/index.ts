@@ -43,10 +43,10 @@ interface Timings {
   };
 }
 
-interface Result {
+interface Result<T> {
   timings?: Timings;
   statusCode?: number;
-  body?: unknown;
+  body?: T;
 }
 
 type Method =
@@ -80,13 +80,13 @@ export class HTTPClient {
     this.maxRedirects = maxRedirects;
   }
 
-  async request(
+  async request<T>(
     method: Method,
     pathTemplate: string,
     params = {},
     body?: unknown,
     options?: RequestInit
-  ): Promise<Result> {
+  ): Promise<Result<T>> {
     const path = parseUrlTemplate(pathTemplate);
     const url = new URL(path.expand(params), this.baseUrl);
 
@@ -127,9 +127,9 @@ export class HTTPClient {
 
       const responseBody = await this.parseResponseBody(response);
 
-      const result: Result = {
+      const result: Result<T> = {
         statusCode: response.status,
-        body: responseBody === "" ? undefined : responseBody,
+        body: (responseBody === "" ? undefined : responseBody) as T,
         timings: {
           phases: {
             total: endTime - startTime,
@@ -139,10 +139,10 @@ export class HTTPClient {
 
       this.recordMetrics(result, method, pathTemplate);
 
-      return this._handlerResponse(result);
+      return this._handlerResponse<T>(result);
     } catch (error) {
       const endTime = performance.now();
-      const result: Result = {
+      const result: Result<T> = {
         statusCode: 0,
         timings: {
           phases: {
@@ -195,7 +195,7 @@ export class HTTPClient {
   }
 
   private recordMetrics(
-    result: Result,
+    result: Result<unknown>,
     method: string,
     pathTemplate: string
   ) {
@@ -224,7 +224,7 @@ export class HTTPClient {
     });
   }
 
-  protected _handlerResponse(res: Result): Result {
+  protected _handlerResponse<T>(res: Result<T>): Result<T> {
     return res;
   }
 
