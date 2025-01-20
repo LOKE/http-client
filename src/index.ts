@@ -43,10 +43,10 @@ interface Timings {
   };
 }
 
-interface Result<T> {
+interface Result {
   timings?: Timings;
   statusCode?: number;
-  body?: T;
+  body?: unknown;
   headers?: Headers;
 }
 
@@ -87,7 +87,7 @@ export class HTTPClient {
     params = {},
     body?: unknown,
     options?: RequestInit
-  ): Promise<Result<T>> {
+  ): Promise<Result> {
     const path = parseUrlTemplate(pathTemplate);
     const url = new URL(path.expand(params), this.baseUrl);
 
@@ -128,7 +128,7 @@ export class HTTPClient {
 
       const responseBody = await this.parseResponseBody(response);
 
-      const result: Result<T> = {
+      const result: Result = {
         statusCode: response.status,
         body: (responseBody === "" ? undefined : responseBody) as T,
         headers: Object.fromEntries(response.headers),
@@ -141,10 +141,10 @@ export class HTTPClient {
 
       this.recordMetrics(result, method, pathTemplate);
 
-      return this._handlerResponse<T>(result);
+      return this._handlerResponse(result);
     } catch (error) {
       const endTime = performance.now();
-      const result: Result<T> = {
+      const result: Result = {
         statusCode: 0,
         timings: {
           phases: {
@@ -197,7 +197,7 @@ export class HTTPClient {
   }
 
   private recordMetrics(
-    result: Result<unknown>,
+    result: Result,
     method: string,
     pathTemplate: string
   ) {
@@ -226,7 +226,7 @@ export class HTTPClient {
     });
   }
 
-  protected _handlerResponse<T>(res: Result<T>): Result<T> {
+  protected _handlerResponse(res: Result): Result {
     return res;
   }
 
