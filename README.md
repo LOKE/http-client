@@ -2,8 +2,8 @@
 
 ## Usage
 
-```js
-const { HTTPClient } = require("@loke/http-client");
+```ts
+import { HTTPClient, HTTPResponseError } from "@loke/http-client";
 
 class MyClient extends HTTPClient {
   constructor() {
@@ -53,22 +53,31 @@ class MyClient extends HTTPClient {
       case 404:
         throw new ThingNotFoundError(body.message);
       default:
-        console.error(
-          "Unexpected status code",
-          err.status,
-          body.message,
-        );
+        console.error("Unexpected status code", err.status, body.message);
         throw err;
     }
   }
 }
 ```
 
+## Error Handling
+
+If `fetch` throws an error, it will be passed to `_handlerError`. This is
+usually a network error or an abort error.
+
+If the response is not in the 2xx range, a `HTTPResponseError` will be thrown.
+This is a subclass of `Error` and has the following properties:
+
+- `message`: The status text of the response
+- `status`: The status code of the response
+- `response`: The original response object
+
 ## Metrics
 
 ```js
-const { HTTPClient, registerMetrics } = require("@loke/http-client");
-const promClient = require("prom-client");
+import { HTTPClient, registerMetrics } from "@loke/http-client";
+import promClient from "prom-client";
+
 registerMetrics(promClient.register);
 ```
 
@@ -80,9 +89,12 @@ the native fetch API.
 
 - The Response object is now from native `fetch` and not `got`
 - Options are now native `fetch` options not `got` options
-- Errors are now native `fetch` errors not `got` errors
+- Errors are now either native `fetch` errors or `HTTPResponseError`, not `got`
+  errors. Notably `got` errors have `statusCode` as a property, but the
+  `HTTPResponseError` has `status` as a property. All other properties are now
+  found under `response`
 - default `_handlerResponse` now returns the parsed body of the response
-- Timout is no longer an option, pass a `signal` on the fetch options instead
+- Timeout is no longer an option, pass a `signal` on the fetch options instead
 - No longer supports the `retry` option, wrap your call to `request` in a retry
   loop instead
 - No longer supports the `http_client_request_stage_duration_seconds` metric
